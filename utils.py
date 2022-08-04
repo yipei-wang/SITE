@@ -98,9 +98,9 @@ def plot_MNIST(img, W):
     explanation = W*img
     
     fig, ax = plt.subplots(2,11, figsize = (14,3))
-    ax[0,0].imshow(img.squeeze().detach().cpu().numpy())
+    ax[0,0].imshow(img.squeeze().detach().cpu().numpy(), cmap = 'gray')
     ax[0,0].set_title('input')
-    ax[1,0].imshow(img.squeeze().detach().cpu().numpy())
+    ax[1,0].imshow(img.squeeze().detach().cpu().numpy(), cmap = 'gray')
     
     for i in range(10):
         ax[0,i+1].set_title(f'{i}')
