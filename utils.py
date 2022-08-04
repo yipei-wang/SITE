@@ -5,6 +5,10 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+class_list = ['airplane', 'automobile', 'bird', 'cat', 'deer', 
+             'dog', 'frog', 'horse', 'ship', 'truck']
+
 ## functions
 
 # show batch images
