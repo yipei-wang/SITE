@@ -15,10 +15,11 @@ class_list = ['airplane', 'automobile', 'bird', 'cat', 'deer',
 def imshow(img,
         nrow = 10,
         figsize = (10, 10),
-        save = [False, None]):
+        save = [False, None],
+         cmap = 'bwr'):
     npimg = torchvision.utils.make_grid(torch.clamp(img, 0,1).cpu().detach(), nrow = nrow)
     plt.figure(figsize = figsize)
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.imshow(np.transpose(npimg, (1, 2, 0)), cmap = cmap)
     plt.axis('off')
     plt.show()
 
@@ -59,9 +60,14 @@ def get_theta(bs = 64):
     theta[:,1,2] = torch.rand(bs) - 0.5
     return theta
 
-def transform(image, theta):
+def transform(image, theta, dataset = 'CIFAR'):
     bs = image.shape[0]
-    grid = F.affine_grid(theta, image.view(bs,3,128,128).size(), align_corners = True)
+    if dataset == 'CIFAR':
+        grid = F.affine_grid(theta, image.view(bs,3,128,128).size(), align_corners = True)
+    elif dataset == 'MNIST':
+        grid = F.affine_grid(theta, image.view(bs,1, 28, 28).size(), align_corners = True)
+    else:
+        raise AttributeError('Only accept CIFAR and MNIST datasets')
     grid = grid.float().to(image.device)
     tran = F.grid_sample(image, grid, align_corners = True)
     tran[tran == 0] = tran.min()
@@ -84,5 +90,28 @@ def plot_explanation(img, explanation):
     ax[1].imshow(torch.clamp(denorm(img),0,1).squeeze().detach().cpu().numpy().transpose((1,2,0)))
     ax[1].imshow(explanation.detach().cpu().numpy(), cmap = 'seismic', alpha = 0.4)
     ax[1].axis('off')
+    plt.tight_layout()
+    plt.show()
+    
+    
+def plot_MNIST(img, W):
+    explanation = W*img
+    
+    fig, ax = plt.subplots(2,11, figsize = (14,3))
+    ax[0,0].imshow(img.squeeze().detach().cpu().numpy())
+    ax[0,0].set_title('input')
+    ax[1,0].imshow(img.squeeze().detach().cpu().numpy())
+    
+    for i in range(10):
+        ax[0,i+1].set_title(f'{i}')
+        ax[0,i+1].imshow(W[0,i].squeeze().detach().cpu().numpy(), cmap = 'bwr')
+        ax[1,i+1].imshow(explanation[0,i].squeeze().detach().cpu().numpy(), cmap = 'bwr')
+                 
+    ax[0,10].text(30,15,'Prototypes')
+    ax[1,10].text(30,15,'Explanations')
+    for i in range(11):
+        ax[1,i].axis('off')
+        ax[0,i].axis('off')
+    
     plt.tight_layout()
     plt.show()

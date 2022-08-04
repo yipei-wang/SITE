@@ -181,12 +181,77 @@ class SITE(nn.Module):
         explanation = (feature.unsqueeze(1)*W).mean(2).squeeze()[target_class]
         explanation = F.interpolate(explanation[None, None], size = (128, 128), mode = 'bilinear', align_corners = True).squeeze()
         return explanation
+    
+
+class MNIST_Generator(nn.Module):
+    def __init__(self):
+        super(MNIST_Generator, self).__init__()
+        self.main = nn.Sequential(
+            nn.ConvTranspose2d(64, 64, 1, 1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(64, 32, 7, 1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(32, 16, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(16, 1, 4, 2, 1, bias=False),
+            nn.Sigmoid(),
+            nn.Flatten()
+        )
+        
+    def forward(self, x):
+        return self.main(x)
+    
+class MNIST_SITE(nn.Module):
+    def __init__(self):
+        super(MNIST_SITE, self).__init__()
+        self.extractor = nn.Sequential(
+            nn.Conv2d(1, 32, 4, 2, 1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, 4, 2, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 7, bias = False),
+            nn.ReLU(),
+            nn.Flatten()
+        )
+        
+
+        self.generator = nn.ModuleList([MNIST_Generator().to(device) for i in range(10)])
+        
+    def forward(self, x):
+        batch_size = x.shape[0]
+        feature = self.extractor(x).view(-1, 64, 1, 1)
+        y = torch.zeros(batch_size, 10).to(device)
+        W = torch.zeros(batch_size, 10, 784).to(device)
+        for i in range(10):
+            W[:,i] = self.generator[i](feature)
+            y[:,i] = torch.matmul(x.view(batch_size, 1, 784), 
+                                  W[:,i].view(batch_size, 784, 1)).flatten()
+        W = W.view(batch_size, 10, 28, 28)
+        return y    
+    
+    def get_explanation(self, x):
+        batch_size = x.shape[0]
+        feature = self.extractor(x).view(-1, 64, 1, 1)
+        y = torch.zeros(batch_size, 10).to(device)
+        W = torch.zeros(batch_size, 10, 784).to(device)
+        for i in range(10):
+            W[:,i] = self.generator[i](feature)
+            y[:,i] = torch.matmul(x.view(batch_size, 1, 784), 
+                                  W[:,i].view(batch_size, 784, 1)).flatten()
+        W = W.view(batch_size, 10, 28, 28)
+        return W, y
 
 
 if __name__ == '__main__':
     model = ResNet(BasicBlock).to(device)
     G = Classifier().to(device)
     site = SITE().to(device)
+    site = MNIST_SITE().to(device)
     print('Models are built!')
 
 
