@@ -1,4 +1,5 @@
 import torch
+import random
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
@@ -47,18 +48,27 @@ def norm(x):
 
     return xx
 
-def get_theta(bs = 64):
-    t = torch.rand(bs)*np.pi - np.pi/2
-    theta = torch.zeros(bs, 2, 3)
+def get_theta(batch_size, get_reverse = False):
+    t = torch.rand(batch_size)*np.pi - np.pi/2
+    ts = torch.rand(batch_size, 2)
+    theta = torch.zeros(batch_size, 2, 3)
     theta[:,0,0] = torch.cos(t)
     theta[:,0,1] = -torch.sin(t)
     theta[:,1,0] = torch.sin(t)
     theta[:,1,1] = torch.cos(t)
+    theta[:,:,2] = ts - 0.5
     
-    # translation
-    theta[:,0,2] = torch.rand(bs) - 0.5
-    theta[:,1,2] = torch.rand(bs) - 0.5
+    if get_reverse:
+        gamma = torch.zeros(batch_size, 2, 3)
+        gamma[:,0,0] = torch.cos(-t)
+        gamma[:,0,1] = -torch.sin(-t)
+        gamma[:,1,0] = torch.sin(-t)
+        gamma[:,1,1] = torch.cos(-t)
+        gamma[:,:,2] = torch.matmul(-gamma[:,:,0:2], theta[:,:,2].view(-1,2,1)).squeeze()
+    
+        return theta, gamma
     return theta
+
 
 def transform(image, theta, dataset = 'CIFAR'):
     bs = image.shape[0]
@@ -70,8 +80,16 @@ def transform(image, theta, dataset = 'CIFAR'):
         raise AttributeError('Only accept CIFAR and MNIST datasets')
     grid = grid.float().to(image.device)
     tran = F.grid_sample(image, grid, align_corners = True)
-    tran[tran == 0] = tran.min()
+    if dataset == 'CIFAR':
+        tran[tran == 0] = tran.min()
     return tran
+
+def transform_W(W, theta, dataset = 'MNIST'):
+    if dataset == 'MNIST':
+        W = W.view(-1, 1, 28, 28)
+        bs = W.shape[0]
+        theta_W = torch.cat([theta]*10, dim = 1).view(bs, 2, 3)
+        return transform(W, theta_W, dataset = 'MNIST').view(bs//10, 10, 28, 28)
 
 def get_n_params(model):
     pp=0
@@ -114,4 +132,38 @@ def plot_MNIST(img, W):
         ax[0,i].axis('off')
     
     plt.tight_layout()
+    plt.show()
+    
+
+def sample_prototype(prototype, label, dataset = 'MNIST'):
+    batch_size = label.shape[0]
+    if dataset == 'MNIST':
+        target = torch.FloatTensor(batch_size, 10, 28, 28)
+    for i in range(10):
+        x = random.sample(prototype[i], batch_size)
+        target[:,i] = torch.cat([x[i] for i in range(batch_size)])
+    target = target.to(label.device)
+    return target
+
+def get_prototype(train_loader, n_prototype = 1000):
+    prototype = [[] for i in range(10)]
+    full = [False for i in range(10)]
+    for _, (image, label) in enumerate(train_loader):
+        batch_size = image.shape[0]
+        for i in range(batch_size):
+            if not full[label[i]]:
+                prototype[label[i]].append(image[i])
+                if len(prototype[label[i]]) == n_prototype:
+                    full[label[i]] = True
+            if all(full):
+                return prototype
+
+def plot_process(image):
+    x = image.squeeze().cpu().detach()
+    for i in range(x.shape[0]):
+        if i == 0:
+            img = x[i]
+        else: img = torch.cat([img, x[i]], dim = 1)
+    plt.imshow(img)
+    plt.axis('off')
     plt.show()

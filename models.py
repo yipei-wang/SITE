@@ -225,8 +225,8 @@ class MNIST_SITE(nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
         feature = self.extractor(x).view(-1, 64, 1, 1)
-        y = torch.zeros(batch_size, 10).to(device)
-        W = torch.zeros(batch_size, 10, 784).to(device)
+        y = torch.zeros(batch_size, 10).to(x.device)
+        W = torch.zeros(batch_size, 10, 784).to(x.device)
         for i in range(10):
             W[:,i] = self.generator[i](feature)
             y[:,i] = torch.matmul(x.view(batch_size, 1, 784), 
@@ -237,8 +237,8 @@ class MNIST_SITE(nn.Module):
     def get_explanation(self, x):
         batch_size = x.shape[0]
         feature = self.extractor(x).view(-1, 64, 1, 1)
-        y = torch.zeros(batch_size, 10).to(device)
-        W = torch.zeros(batch_size, 10, 784).to(device)
+        y = torch.zeros(batch_size, 10).to(x.device)
+        W = torch.zeros(batch_size, 10, 784).to(x.device)
         for i in range(10):
             W[:,i] = self.generator[i](feature)
             y[:,i] = torch.matmul(x.view(batch_size, 1, 784), 
