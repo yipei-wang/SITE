@@ -226,7 +226,7 @@ class MNIST_SITE(nn.Module):
         )
         
 
-        self.generator = nn.ModuleList([MNIST_Generator().to(device) for i in range(10)])
+        self.generator = nn.ModuleList([MNIST_Generator() for i in range(10)])
         
     def forward(self, x):
         batch_size = x.shape[0]
