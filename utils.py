@@ -139,9 +139,15 @@ def sample_prototype(prototype, label, dataset = 'MNIST'):
     batch_size = label.shape[0]
     if dataset == 'MNIST':
         target = torch.FloatTensor(batch_size, 10, 28, 28)
+    elif dataset == 'CIFAR':
+        target = torch.FloatTensor(batch_size, 10, 3, 128, 128)
     for i in range(10):
         x = random.sample(prototype[i], batch_size)
-        target[:,i] = torch.cat([x[i] for i in range(batch_size)])
+        if dataset == 'MNIST':
+            target[:,i] = torch.cat([x[i] for i in range(batch_size)])
+        elif dataset == 'CIFAR':
+            target[:,i] = torch.cat([x[i].view(1,3,128,128) for i in range(batch_size)])
+        
     target = target.to(label.device)
     return target
 

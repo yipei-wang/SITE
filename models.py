@@ -182,6 +182,12 @@ class SITE(nn.Module):
         explanation = F.interpolate(explanation[None, None], size = (128, 128), mode = 'bilinear', align_corners = True).squeeze()
         return explanation
     
+    def for_training(self, x):
+        feature, _ = self.backbone(x)
+        W, pred = self.site(feature)
+        return feature, W, pred
+        
+    
 
 class MNIST_Generator(nn.Module):
     def __init__(self):
