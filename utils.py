@@ -90,6 +90,17 @@ def transform_W(W, theta, dataset = 'MNIST'):
         bs = W.shape[0]
         theta_W = torch.cat([theta]*10, dim = 1).view(bs, 2, 3)
         return transform(W, theta_W, dataset = 'MNIST').view(bs//10, 10, 28, 28)
+    elif dataset == 'CIFAR':
+        W = W.view(-1, 10, 16, 16)
+        bs = W.shape[0]
+        theta_W = torch.cat([theta]*10, dim = 1).view(bs, 2, 3)
+
+        grid = F.affine_grid(theta_W, W.view(bs,10,16,16).size(), align_corners = True)
+        grid = grid.float().to(W.device)
+        tran = F.grid_sample(W, grid, align_corners = True)
+        tran[tran == 0] = tran.min()
+
+        return tran.view(-1, 10, 10, 16, 16)
 
 def get_n_params(model):
     pp=0
