@@ -3,6 +3,7 @@
 This work contains the PyTorch implementation of and demonstrations of [NeurIPS 2021: Self-Interpretable Model with Transformation Equivariant Interpretation](https://proceedings.neurips.cc/paper/2021/file/1387a00f03b4b423e63127b08c261bdc-Paper.pdf) (**SITE**)
 
 **Method**
+
 SITE trains a self-interpretable model that offers both consistent predictions and explanations across geometric transformations. This is achieved through the regularization of a self-interpretable module, thereby increasing the model's trustworthiness.
 ![alt text](https://github.com/yipei-wang/Images/blob/main/SITE/SITE_overview.png)
 
