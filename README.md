@@ -21,7 +21,7 @@ For academic usage, please consider citing:
 
 ## Contents
 
-**Training:** notebooks demonstrate the training process of SITE on [MNIST](MNIST_train.ipynb) and [CIFAR](CIFAR_train.ipynb) datasets.
+**Training** notebooks demonstrate the training process of SITE on [MNIST](MNIST_train.ipynb) and [CIFAR](CIFAR_train.ipynb) datasets.
 
 **Example** notebooks demonstrate how SITE is used to generate explanations for [MNIST](example_MNIST.ipynb) and [CIFAR](example_CIFAR.ipynb) datasets
 
