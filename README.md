@@ -22,6 +22,14 @@ For academic usage, please consider citing:
 
 ## Contents
 
+**Libraries**
+
+<pre>
+  numpy==1.19.5
+  torch==1.10.2
+  torchvision=0.11.3
+</pre>
+
 **Training** notebooks demonstrate the training process of SITE on [MNIST](MNIST_train.ipynb) and [CIFAR](CIFAR_train.ipynb) datasets.
 
 **Example** notebooks demonstrate how SITE is used to generate explanations for [MNIST](example_MNIST.ipynb) and [CIFAR](example_CIFAR.ipynb) datasets
